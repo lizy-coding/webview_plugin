@@ -21,7 +21,7 @@ class WindowsWebView extends StatefulWidget {
 
 class _WindowsWebViewState extends State<WindowsWebView> {
   final WebviewController _controller = WebviewController();
-  WindowsWebViewController? _windowsController;
+  WebViewControllerInterface<WebviewController>? _windowsController;
   final Logger _logger = Logger('WindowsWebView');
   bool _isLoading = true;
 
@@ -45,7 +45,8 @@ class _WindowsWebViewState extends State<WindowsWebView> {
       await _controller.loadUrl(widget.url);
       _logger.info('URL loaded successfully: ${widget.url}');
 
-      _windowsController = WindowsWebViewController(_controller);
+      _windowsController = WebViewControllerFactory.create(_controller)
+          as WebViewControllerInterface<WebviewController>;
       _logger.info('WindowsWebViewController created successfully');
 
       if (!mounted) return;
@@ -83,7 +84,7 @@ class _WindowsWebViewState extends State<WindowsWebView> {
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: _windowsController != null
-          ? WebViewNavigationBar(
+          ? WebViewNavigationBar<WebviewController>(
               controller: _windowsController!,
               logger: _logger,
             )

@@ -3,15 +3,18 @@ import 'package:logging/logging.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_windows/webview_windows.dart';
 
-abstract class WebViewControllerInterface {
+abstract class WebViewControllerInterface<T> {
+  T get controller;
   Future<bool> canGoBack();
   Future<bool> canGoForward();
-  void goBack();
-  void goForward();
-  void reload();
+  Future<void> goBack();
+  Future<void> goForward();
+  Future<void> reload();
 }
 
-class AndroidWebViewController implements WebViewControllerInterface {
+class AndroidWebViewController
+    extends WebViewControllerInterface<WebViewController> {
+  @override
   final WebViewController controller;
 
   AndroidWebViewController(this.controller);
@@ -23,38 +26,73 @@ class AndroidWebViewController implements WebViewControllerInterface {
   Future<bool> canGoForward() => controller.canGoForward();
 
   @override
-  void goBack() => controller.goBack();
+  Future<void> goBack() => controller.goBack();
 
   @override
-  void goForward() => controller.goForward();
+  Future<void> goForward() => controller.goForward();
 
   @override
-  void reload() => controller.reload();
+  Future<void> reload() => controller.reload();
 }
 
-class WindowsWebViewController implements WebViewControllerInterface {
+class WindowsWebViewController
+    extends WebViewControllerInterface<WebviewController> {
+  @override
   final WebviewController controller;
+  // windows 平台始终可以前进后退
+  final bool _canGoBack = true;
+  final bool _canGoForward = true;
 
-  WindowsWebViewController(this.controller);
+  WindowsWebViewController(this.controller) {
+    _setupNavigationStateListeners();
+  }
 
-  @override
-  Future<bool> canGoBack() async => false;
-
-  @override
-  Future<bool> canGoForward() async => false;
-
-  @override
-  void goBack() {}
-
-  @override
-  void goForward() {}
+  void _setupNavigationStateListeners() {
+    controller.historyChanged.listen((HistoryChanged event) {});
+  }
 
   @override
-  void reload() {}
+  Future<bool> canGoBack() async {
+    return _canGoBack;
+  }
+
+  @override
+  Future<bool> canGoForward() async {
+    return _canGoForward;
+  }
+
+  @override
+  Future<void> goBack() async {
+    if (_canGoBack) {
+      await controller.goBack();
+    }
+  }
+
+  @override
+  Future<void> goForward() async {
+    if (_canGoForward) {
+      await controller.goForward();
+    }
+  }
+
+  @override
+  Future<void> reload() => controller.reload();
 }
 
-class WebViewNavigationBar extends StatelessWidget {
-  final WebViewControllerInterface controller;
+class WebViewControllerFactory {
+  static WebViewControllerInterface create(dynamic controller) {
+    if (controller is WebViewController) {
+      return AndroidWebViewController(controller);
+    } else if (controller is WebviewController) {
+      return WindowsWebViewController(controller);
+    }
+    throw UnsupportedError(
+        'Unsupported controller type: ${controller.runtimeType}');
+  }
+}
+
+class WebViewNavigationBar<T> extends StatelessWidget {
+  final WebViewControllerInterface<T> controller;
   final Logger logger;
 
   const WebViewNavigationBar({
@@ -70,24 +108,16 @@ class WebViewNavigationBar extends StatelessWidget {
       actions: [
         IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () async {
-            if (await controller.canGoBack()) {
-              controller.goBack();
-              logger.info('Navigated back');
-            } else {
-              logger.info('Cannot go back');
-            }
+          onPressed: () {
+            controller.goBack();
+            logger.info('Attempted to navigate back');
           },
         ),
         IconButton(
           icon: const Icon(Icons.arrow_forward),
-          onPressed: () async {
-            if (await controller.canGoForward()) {
-              controller.goForward();
-              logger.info('Navigated forward');
-            } else {
-              logger.info('Cannot go forward');
-            }
+          onPressed: () {
+            controller.goForward();
+            logger.info('Attempted to navigate forward');
           },
         ),
         IconButton(
