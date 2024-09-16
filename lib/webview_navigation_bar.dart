@@ -3,6 +3,7 @@ import 'package:logging/logging.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_windows/webview_windows.dart';
 
+// WebView控制器接口，定义了通用的WebView操作
 abstract class WebViewControllerInterface<T> {
   T get controller;
   Future<bool> canGoBack();
@@ -12,6 +13,7 @@ abstract class WebViewControllerInterface<T> {
   Future<void> reload();
 }
 
+// Android平台的WebView控制器实现
 class AndroidWebViewController
     extends WebViewControllerInterface<WebViewController> {
   @override
@@ -19,6 +21,7 @@ class AndroidWebViewController
 
   AndroidWebViewController(this.controller);
 
+  // 实现接口定义的方法
   @override
   Future<bool> canGoBack() => controller.canGoBack();
 
@@ -35,11 +38,12 @@ class AndroidWebViewController
   Future<void> reload() => controller.reload();
 }
 
+// Windows平台的WebView控制器实现
 class WindowsWebViewController
     extends WebViewControllerInterface<WebviewController> {
   @override
   final WebviewController controller;
-  // windows 平台始终可以前进后退
+  // Windows平台始终可以前进后退
   final bool _canGoBack = true;
   final bool _canGoForward = true;
 
@@ -47,19 +51,17 @@ class WindowsWebViewController
     _setupNavigationStateListeners();
   }
 
+  // 设置导航状态监听器
   void _setupNavigationStateListeners() {
     controller.historyChanged.listen((HistoryChanged event) {});
   }
 
+  // 实现接口定义的方法
   @override
-  Future<bool> canGoBack() async {
-    return _canGoBack;
-  }
+  Future<bool> canGoBack() async => _canGoBack;
 
   @override
-  Future<bool> canGoForward() async {
-    return _canGoForward;
-  }
+  Future<bool> canGoForward() async => _canGoForward;
 
   @override
   Future<void> goBack() async {
@@ -79,6 +81,7 @@ class WindowsWebViewController
   Future<void> reload() => controller.reload();
 }
 
+// WebView控制器工厂类，用于创建适合当前平台的控制器
 class WebViewControllerFactory {
   static WebViewControllerInterface create(dynamic controller) {
     if (controller is WebViewController) {
@@ -91,6 +94,7 @@ class WebViewControllerFactory {
   }
 }
 
+// WebView导航栏组件
 class WebViewNavigationBar<T> extends StatelessWidget {
   final WebViewControllerInterface<T> controller;
   final Logger logger;
@@ -106,25 +110,28 @@ class WebViewNavigationBar<T> extends StatelessWidget {
     return AppBar(
       title: const Text('WebView'),
       actions: [
+        // 后退按钮
         IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             controller.goBack();
-            logger.info('Attempted to navigate back');
+            logger.info('尝试返回上一页');
           },
         ),
+        // 前进按钮
         IconButton(
           icon: const Icon(Icons.arrow_forward),
           onPressed: () {
             controller.goForward();
-            logger.info('Attempted to navigate forward');
+            logger.info('尝试前进到下一页');
           },
         ),
+        // 刷新按钮
         IconButton(
           icon: const Icon(Icons.refresh),
           onPressed: () {
             controller.reload();
-            logger.info('Page reloaded');
+            logger.info('页面刷新');
           },
         ),
       ],
