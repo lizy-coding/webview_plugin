@@ -7,12 +7,14 @@ class AndroidWebView extends StatefulWidget {
   final String url;
   final bool showNavigationBar;
   final PreferredSizeWidget? appBar;
+  final Color backgroundColor;
 
   const AndroidWebView({
     super.key,
     required this.url,
     this.showNavigationBar = true,
     this.appBar,
+    required this.backgroundColor,
   });
 
   @override
@@ -30,6 +32,7 @@ class _AndroidWebViewState extends State<AndroidWebView> {
     super.initState();
     _logger.info('正在初始化 AndroidWebView'); // 初始化开始日志
     _controller = WebViewController()
+      ..setBackgroundColor(widget.backgroundColor)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(

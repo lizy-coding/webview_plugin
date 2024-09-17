@@ -28,6 +28,7 @@ class WebViewExample extends StatelessWidget {
   Widget build(BuildContext context) {
     return const WebViewContainer(
       url: 'https://flutter.dev',
+      backgroundColor: Colors.black,
     );
   }
 }

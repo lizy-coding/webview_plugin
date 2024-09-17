@@ -7,12 +7,14 @@ class WindowsWebView extends StatefulWidget {
   final String url;
   final bool showNavigationBar;
   final PreferredSizeWidget? appBar;
+  final Color backgroundColor;
 
   const WindowsWebView({
     super.key,
     required this.url,
     this.showNavigationBar = true,
     this.appBar,
+    required this.backgroundColor,
   });
 
   // 创建 WindowsWebView 的状态
@@ -39,8 +41,7 @@ class _WindowsWebViewState extends State<WindowsWebView> {
       await _controller.initialize();
       _logger.info('WebView controller initialized successfully');
 
-      // 设置背景颜色为透明
-      await _controller.setBackgroundColor(Colors.transparent);
+      await _controller.setBackgroundColor(widget.backgroundColor);
       _logger.info('Background color set successfully');
 
       // 设置弹出窗口策略为拒绝
@@ -52,7 +53,7 @@ class _WindowsWebViewState extends State<WindowsWebView> {
       _logger.info('URL loaded successfully: ${widget.url}');
 
       // 创建 Windows WebView 控制器
-      _windowsController = WindowsWebViewController(_controller);
+      _windowsController = WindowsWebViewController(_controller, _logger);
       if (!mounted) return;
       setState(() {
         _isLoading = false;
