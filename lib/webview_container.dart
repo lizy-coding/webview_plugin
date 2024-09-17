@@ -8,12 +8,14 @@ class WebViewContainer extends StatefulWidget {
   final String url;
   final bool showNavigationBar;
   final PreferredSizeWidget? appBar;
+  final Color backgroundColor;
 
   const WebViewContainer({
     super.key,
     required this.url,
     this.showNavigationBar = true,
     this.appBar,
+    this.backgroundColor = Colors.white, // Default to white
   });
 
   @override
@@ -30,16 +32,21 @@ class _WebViewContainerState extends State<WebViewContainer> {
         url: widget.url,
         showNavigationBar: widget.showNavigationBar,
         appBar: widget.appBar,
+        backgroundColor: widget.backgroundColor, // Pass background color
       );
     } else if (Platform.isWindows) {
       return WindowsWebView(
         url: widget.url,
         showNavigationBar: widget.showNavigationBar,
         appBar: widget.appBar,
+        backgroundColor: widget.backgroundColor, // Pass background color
       );
     } else {
       _logger.warning('Unsupported platform');
-      return const Center(child: Text('Unsupported platform'));
+      return Container(
+        color: widget.backgroundColor, // Apply background color
+        child: const Center(child: Text('Unsupported platform')),
+      );
     }
   }
 }
