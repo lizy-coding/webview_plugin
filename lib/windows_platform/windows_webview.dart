@@ -15,13 +15,14 @@ class WindowsWebView extends StatefulWidget {
     this.appBar,
   });
 
+  // 创建 WindowsWebView 的状态
   @override
   _WindowsWebViewState createState() => _WindowsWebViewState();
 }
 
 class _WindowsWebViewState extends State<WindowsWebView> {
   final WebviewController _controller = WebviewController();
-  WebViewControllerInterface<WebviewController>? _windowsController;
+  WindowsWebViewController? _windowsController;
   final Logger _logger = Logger('WindowsWebView');
   bool _isLoading = true;
 
@@ -31,29 +32,33 @@ class _WindowsWebViewState extends State<WindowsWebView> {
     _initPlatformState();
   }
 
+  // 初始化 WebView 控制器和加载 URL
   Future<void> _initPlatformState() async {
     try {
+      // 初始化 WebView 控制器
       await _controller.initialize();
       _logger.info('WebView controller initialized successfully');
 
+      // 设置背景颜色为透明
       await _controller.setBackgroundColor(Colors.transparent);
       _logger.info('Background color set successfully');
 
+      // 设置弹出窗口策略为拒绝
       await _controller.setPopupWindowPolicy(WebviewPopupWindowPolicy.deny);
       _logger.info('Popup window policy set successfully');
 
+      // 加载指定的 URL
       await _controller.loadUrl(widget.url);
       _logger.info('URL loaded successfully: ${widget.url}');
 
-      _windowsController = WebViewControllerFactory.create(_controller)
-          as WebViewControllerInterface<WebviewController>;
-      _logger.info('WindowsWebViewController created successfully');
-
+      // 创建 Windows WebView 控制器
+      _windowsController = WindowsWebViewController(_controller);
       if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
     } catch (e, stackTrace) {
+      // 处理初始化错误
       _logger.severe('Error initializing WebView: $e', e, stackTrace);
       if (mounted) {
         setState(() {
@@ -73,22 +78,25 @@ class _WindowsWebViewState extends State<WindowsWebView> {
       body: Stack(
         children: [
           Webview(_controller),
-          if (_isLoading) const Center(child: CircularProgressIndicator()),
+          if (_isLoading)
+            const Center(child: CircularProgressIndicator()), // 加载时显示进度指示器
         ],
       ),
     );
   }
 
+  // 构建默认的应用栏
   PreferredSizeWidget? _buildDefaultAppBar() {
     if (!widget.showNavigationBar) return null;
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: _windowsController != null
-          ? WebViewNavigationBar<WebviewController>(
+          ? WebViewNavigationBar(
+              // 使用自定义的 WebView 导航栏
               controller: _windowsController!,
               logger: _logger,
             )
-          : AppBar(),
+          : AppBar(), // 如果控制器未初始化，则显示默认 AppBar
     );
   }
 }

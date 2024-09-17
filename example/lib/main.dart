@@ -28,7 +28,6 @@ class WebViewExample extends StatelessWidget {
   Widget build(BuildContext context) {
     return const WebViewContainer(
       url: 'https://flutter.dev',
-      showNavigationBar: true,
     );
   }
 }

@@ -4,8 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_windows/webview_windows.dart';
 
 // WebView控制器接口，定义了通用的WebView操作
-abstract class WebViewControllerInterface<T> {
-  T get controller;
+abstract class WebViewControllerInterface {
   Future<bool> canGoBack();
   Future<bool> canGoForward();
   Future<void> goBack();
@@ -14,14 +13,11 @@ abstract class WebViewControllerInterface<T> {
 }
 
 // Android平台的WebView控制器实现
-class AndroidWebViewController
-    extends WebViewControllerInterface<WebViewController> {
-  @override
+class AndroidWebViewController implements WebViewControllerInterface {
   final WebViewController controller;
 
   AndroidWebViewController(this.controller);
 
-  // 实现接口定义的方法
   @override
   Future<bool> canGoBack() => controller.canGoBack();
 
@@ -39,64 +35,36 @@ class AndroidWebViewController
 }
 
 // Windows平台的WebView控制器实现
-class WindowsWebViewController
-    extends WebViewControllerInterface<WebviewController> {
-  @override
+class WindowsWebViewController implements WebViewControllerInterface {
   final WebviewController controller;
-  // Windows平台始终可以前进后退
-  final bool _canGoBack = true;
-  final bool _canGoForward = true;
 
-  WindowsWebViewController(this.controller) {
-    _setupNavigationStateListeners();
-  }
-
-  // 设置导航状态监听器
-  void _setupNavigationStateListeners() {
-    controller.historyChanged.listen((HistoryChanged event) {});
-  }
-
-  // 实现接口定义的方法
-  @override
-  Future<bool> canGoBack() async => _canGoBack;
+  WindowsWebViewController(this.controller);
 
   @override
-  Future<bool> canGoForward() async => _canGoForward;
-
-  @override
-  Future<void> goBack() async {
-    if (_canGoBack) {
-      await controller.goBack();
-    }
+  Future<bool> canGoBack() async {
+    final result = await controller.executeScript('history.length > 1');
+    return result == 'true';
   }
 
   @override
-  Future<void> goForward() async {
-    if (_canGoForward) {
-      await controller.goForward();
-    }
+  Future<bool> canGoForward() async {
+    final result = await controller.executeScript('!!window.history.forward');
+    return result == 'true';
   }
+
+  @override
+  Future<void> goBack() => controller.goBack();
+
+  @override
+  Future<void> goForward() => controller.goForward();
 
   @override
   Future<void> reload() => controller.reload();
 }
 
-// WebView控制器工厂类，用于创建适合当前平台的控制器
-class WebViewControllerFactory {
-  static WebViewControllerInterface create(dynamic controller) {
-    if (controller is WebViewController) {
-      return AndroidWebViewController(controller);
-    } else if (controller is WebviewController) {
-      return WindowsWebViewController(controller);
-    }
-    throw UnsupportedError(
-        'Unsupported controller type: ${controller.runtimeType}');
-  }
-}
-
 // WebView导航栏组件
-class WebViewNavigationBar<T> extends StatelessWidget {
-  final WebViewControllerInterface<T> controller;
+class WebViewNavigationBar extends StatelessWidget {
+  final WebViewControllerInterface controller;
   final Logger logger;
 
   const WebViewNavigationBar({
