@@ -101,6 +101,8 @@ class WebViewNavigationBar extends StatelessWidget {
       return;
     }
 
+    url = _normalizeUrl(url);
+
     if (!_isValidUrl(url)) {
       _showErrorDialog(context, '请输入有效的网址');
       return;
@@ -110,10 +112,33 @@ class WebViewNavigationBar extends StatelessWidget {
     logger.info('加载新网址: $url');
   }
 
-// 验证URL是否有效
+  String _normalizeUrl(String url) {
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return 'https://' + url;
+    }
+    return url;
+  }
+
+  // 验证URL是否有效
   bool _isValidUrl(String url) {
     logger.info('Validating URL: $url');
-    return Uri.tryParse(url)?.hasAbsolutePath ?? false;
+    if (url.isEmpty) return false;
+
+    try {
+      final uri = Uri.parse(url);
+      if (uri.scheme.isEmpty || uri.host.isEmpty) {
+        return false;
+      }
+      // 额外检查：确保主机名至少包含一个点，并且顶级域名至少有2个字符
+      var parts = uri.host.split('.');
+      if (parts.length < 2 || parts.last.length < 2) {
+        return false;
+      }
+      return true;
+    } catch (e) {
+      logger.warning('Invalid URL: $url, Error: $e');
+      return false;
+    }
   }
 
   void _showErrorDialog(BuildContext context, String message) {

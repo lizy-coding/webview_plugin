@@ -26,6 +26,7 @@ class _AndroidWebViewState extends State<AndroidWebView> {
   late AndroidWebViewController _androidController;
   bool _isLoading = true;
   final Logger _logger = Logger('AndroidWebView');
+  double _loadingProgress = 0.0;
 
   @override
   void initState() {
@@ -37,11 +38,23 @@ class _AndroidWebViewState extends State<AndroidWebView> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            setState(() => _isLoading = true);
+            setState(() {
+              _isLoading = true;
+              _loadingProgress = 0.0;
+            });
             _logger.info('Page load started: $url');
           },
+          onProgress: (int progress) {
+            setState(() {
+              _loadingProgress = progress / 100;
+            });
+            _logger.info('Loading progress: $progress%');
+          },
           onPageFinished: (String url) {
-            setState(() => _isLoading = false);
+            setState(() {
+              _isLoading = false;
+              _loadingProgress = 1.0;
+            });
             _logger.info('Page load finished: $url');
           },
           onWebResourceError: (WebResourceError error) {
@@ -62,7 +75,13 @@ class _AndroidWebViewState extends State<AndroidWebView> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_isLoading) const Center(child: CircularProgressIndicator()),
+          if (_isLoading)
+            LinearProgressIndicator(
+              value: _loadingProgress,
+              backgroundColor: Colors.white.withOpacity(0.5),
+              valueColor:
+                  AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+            ),
         ],
       ),
     );
