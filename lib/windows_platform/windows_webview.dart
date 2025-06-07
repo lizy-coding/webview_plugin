@@ -23,7 +23,8 @@ class WindowsWebView extends StatefulWidget {
   _WindowsWebViewState createState() => _WindowsWebViewState();
 }
 
-class _WindowsWebViewState extends State<WindowsWebView> with SingleTickerProviderStateMixin {
+class _WindowsWebViewState extends State<WindowsWebView>
+    with SingleTickerProviderStateMixin {
   final WebviewController _controller = WebviewController();
   WindowsWebViewController? _windowsController;
   final Logger _logger = Logger('WindowsWebView');
@@ -39,17 +40,18 @@ class _WindowsWebViewState extends State<WindowsWebView> with SingleTickerProvid
   void initState() {
     super.initState();
     _currentUrl = widget.url;
-    
+
     // 初始化动画控制器
     _fadeAnimController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_fadeAnimController);
-    
+    _fadeAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_fadeAnimController);
+
     _initPlatformState();
   }
-  
+
   @override
   void dispose() {
     _fadeAnimController.dispose();
@@ -70,10 +72,10 @@ class _WindowsWebViewState extends State<WindowsWebView> with SingleTickerProvid
       // 设置弹出窗口策略为拒绝
       await _controller.setPopupWindowPolicy(WebviewPopupWindowPolicy.deny);
       _logger.info('Popup window policy set successfully');
-      
+
       // 监听加载状态变化
       _setupNavigationEvents();
-      
+
       // 设置定时器，如果加载时间过长，也显示内容
       _loadingTimer = Timer(const Duration(seconds: 3), () {
         if (mounted && _showPlaceholder) {
@@ -105,7 +107,7 @@ class _WindowsWebViewState extends State<WindowsWebView> with SingleTickerProvid
       }
     }
   }
-  
+
   void _setupNavigationEvents() {
     // Windows WebView 没有直接的导航事件，需要通过 JavaScript 监听
     _controller.addScriptToExecuteOnDocumentCreated("""
@@ -121,7 +123,7 @@ class _WindowsWebViewState extends State<WindowsWebView> with SingleTickerProvid
         if (progress >= 0.9) clearInterval(progressInterval);
       }, 100);
     """);
-    
+
     _controller.webMessage.listen((message) {
       if (message == 'PAGE_LOADED') {
         _finishLoading();
@@ -142,7 +144,7 @@ class _WindowsWebViewState extends State<WindowsWebView> with SingleTickerProvid
       }
     });
   }
-  
+
   void _finishLoading() {
     _logger.info('Page load finished');
     _loadingTimer?.cancel();
@@ -165,11 +167,10 @@ class _WindowsWebViewState extends State<WindowsWebView> with SingleTickerProvid
             opacity: _fadeAnimation,
             child: Webview(_controller),
           ),
-          
+
           // 加载占位内容
-          if (_showPlaceholder)
-            _buildLoadingPlaceholder(),
-          
+          if (_showPlaceholder) _buildLoadingPlaceholder(),
+
           // 顶部进度条
           if (_isLoading)
             Positioned(
@@ -189,7 +190,7 @@ class _WindowsWebViewState extends State<WindowsWebView> with SingleTickerProvid
       ),
     );
   }
-  
+
   Widget _buildLoadingPlaceholder() {
     // 构建加载占位界面，模拟网页内容
     return Container(
@@ -203,7 +204,7 @@ class _WindowsWebViewState extends State<WindowsWebView> with SingleTickerProvid
             color: Colors.grey.withOpacity(0.1),
             margin: const EdgeInsets.all(8.0),
           ),
-          
+
           // 模拟内容块
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -222,16 +223,16 @@ class _WindowsWebViewState extends State<WindowsWebView> with SingleTickerProvid
               }),
             ),
           ),
-          
+
           // 模拟图片内容
           Container(
             height: 200,
             margin: const EdgeInsets.symmetric(horizontal: 16.0),
             color: Colors.grey.withOpacity(0.1),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // 加载中提示
           Center(
             child: Column(
