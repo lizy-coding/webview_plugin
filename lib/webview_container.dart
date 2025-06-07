@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:webview_continer/android_platform/android_webview.dart';
 import 'package:webview_continer/windows_platform/windows_webview.dart';
